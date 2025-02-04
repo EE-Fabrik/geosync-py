@@ -10,6 +10,9 @@ def parse_args(cached=[]):
     parser.add_argument('-c', '--configure', action='store_true', help='Edit your existing configuration. The first-run wizard will be shown again, with your existing configuration pre-filled.')
     parser.add_argument('-r', '--resume', action='store_true', help='Resume checking for completed analyses and downloading them. This will skip the analysis start step.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Print more information to the console.')
+    parser.add_argument('-s', '--skip-unfinished', action='store_true', help='Skip waiting for unfinished analyses to complete.')
+    parser.add_argument('-a', '--app-dir', required=False, help='The directory where the application data is stored.')
+    parser.add_argument('-fs', '--federal-states', nargs='+', required=False, help='List of federal states as NUTS:DE codes (see https://de.wikipedia.org/wiki/NUTS:DE).')
     args = parser.parse_args()
     cached.append(args)
     return args

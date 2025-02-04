@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from .api_client import general_availability_operation, local_availability_operation, start_analyses_operation
 from .compose_requests import compose_complete_requests
@@ -5,9 +6,12 @@ from .journal import Journal
 from .graphql_errors import check_errors
 from .parse_args import parse_args
 from sgqlc.endpoint.http import HTTPEndpoint
-from .download_completed_analyses import download_completed_analyses
 
 AnalysesMutationResult = Any
+
+
+log = logging.getLogger(__name__)
+
 
 def start_analyses(client: HTTPEndpoint) -> AnalysesMutationResult:
     """Starts the analyses for all updated data."""
@@ -15,7 +19,7 @@ def start_analyses(client: HTTPEndpoint) -> AnalysesMutationResult:
     args = parse_args()
     # Get information about our permissions and the general availability of layers
     general_op = general_availability_operation()
-    print("Checking for layers to update...")
+    log.info("Checking for layers to update...")
     general_data = client(general_op)
     check_errors(general_data)
     general_availability = (general_op + general_data)
@@ -31,10 +35,17 @@ def start_analyses(client: HTTPEndpoint) -> AnalysesMutationResult:
     if len(analysis_inputs) == 0:
         # We can only check for layer having been unpacked already.
         # So if we're here, we've already unpacked all latest layers.
-        print("✅ No layers to update. Done.")
+        log.info("✅ No layers to update. Done.")
         exit(0)
+    if args.federal_states:
+        analysis_inputs = {fs_key:val for fs_key, val in analysis_inputs.items() if fs_key in args.federal_states}
+    # FIXME (Daniel fragen:) In den heruntergeladenen ZipFiles für DE1 sind keine Layer enthalten, so dass immer wieder neue Analysen angestoßen werden. Warum?
+    # TODO (minor) There might already be a PENDING/RUNNING analysis that has not been downloaded yet. Skip analysis if that is the case.
     for federal_state_key in analysis_inputs:
-        print(f"Starting analysis for {federal_state_key}")
+        log.info(f"Starting analysis for {federal_state_key} for the following clusters/layers:")
+        for request in analysis_inputs[federal_state_key].specs.requests:
+            layers = [l.layer_name for l in request.layers]
+            log.info(f"- Cluster: {request.cluster_name}, layers: {layers}")
         analyses_op = start_analyses_operation({federal_state_key: analysis_inputs[federal_state_key]})
         analyses_data = client(analyses_op)
         check_errors(analyses_data)
@@ -42,7 +53,5 @@ def start_analyses(client: HTTPEndpoint) -> AnalysesMutationResult:
 
         # Add the analyses to the journal
         journal.record_analyses_requested(analyses)
-        print("Analysis started.")
-        download_completed_analyses(client)
-    
+
     return(analyses)

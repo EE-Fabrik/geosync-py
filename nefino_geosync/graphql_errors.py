@@ -1,8 +1,14 @@
+import logging
+
 from prompt_toolkit import print_formatted_text
 from prompt_toolkit.formatted_text import HTML
 from .parse_args import parse_args
 import json
 import html
+
+
+log = logging.getLogger(__name__)
+
 
 def check_errors(data: dict) -> None:
     """Check for errors in a GraphQL response."""
@@ -18,8 +24,8 @@ def check_errors(data: dict) -> None:
                 try:
                     pp("<b>Received GraphQL error from server:</b> " + html.escape(json.dumps(data['errors'], indent=4)))
                 except Exception as e:
-                    print(e)
-                    print(data["errors"])
+                    log.info(e)
+                    log.info(data["errors"])
                 pp("""<b fg="red">ERROR:</b> A GraphQL error occurred. Run with <b>--verbose</b> to see more information.
 Exiting due to the above error.""")
             if args.verbose:

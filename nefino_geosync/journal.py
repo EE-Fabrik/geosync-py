@@ -1,9 +1,14 @@
 import json
+import logging
 import os
 import re
 from datetime import datetime
 from typing import Dict, Set
 from .storage import get_app_directory
+
+
+log = logging.getLogger(__name__)
+
 
 class Journal:
     """Handles metadata about analyses for efficient downloading."""
@@ -46,7 +51,7 @@ class Journal:
                 self.analysis_states = json.load(f)
         except FileNotFoundError:
             # we already have an empty dictionary as the field value
-            print("No saved analysis states found.")
+            log.info("No saved analysis states found.")
     
     def save_layer_last_updates(self):
         """Saves the layer last updates to a file."""
@@ -63,7 +68,7 @@ class Journal:
                         cluster[state] = datetime.fromisoformat(timestamp) if timestamp else None
         except FileNotFoundError:
             # we already have an empty dictionary as the field value
-            print("No saved layer last updates found.")
+            log.info("No saved layer last updates found.")
     
     def save_synced_analyses(self):
         """Saves the list of processed analyses to a file."""
@@ -77,7 +82,7 @@ class Journal:
                 self.synced_analyses = set(json.load(f))
         except FileNotFoundError:
             # we already have an empty set as the field value
-            print("No saved downloaded analyses found.")
+            log.info("No saved downloaded analyses found.")
 
     def record_analyses_requested(self, start_analyses_result):
         """Records the analyses that have been started, and where they were started."""
@@ -89,11 +94,12 @@ class Journal:
             state = match.group("state")
             # record where the analysis was started
             self.analysis_states[analysis_metadata.pk] = state
+            log.info(f"Analysis {analysis_metadata.pk} for state {state} started.")
         self.save_analysis_states()
     
     def record_layers_unpacked(self, layers: Set[str], state: str, started_at: datetime):
         """Records the layers that have been unpacked, and when they were last updated."""
-        print(f"Recording layers {layers} as unpacked for state {state}")
+        log.info(f"Recording layers {layers} as unpacked for state {state}")
         for layer in layers:
             if layer not in self.layer_last_updates:
                 self.layer_last_updates[layer] = dict()

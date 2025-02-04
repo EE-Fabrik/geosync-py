@@ -3,23 +3,29 @@
 import os
 import platform
 
+from .parse_args import parse_args
+
 APP_NAME='nefino-geosync'
 
 def get_app_directory() -> str:
     """Returns the directory where the app should store its files. 
     Creates it if it doesn't exist."""
-    system = platform.system()
-    
-    if system == 'Windows':
-        base_dir = os.path.join(os.getenv('APPDATA'), APP_NAME)
-    elif system == 'Darwin':  # macOS
-        base_dir = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', APP_NAME)
-    else:  # Linux and other Unix-like systems
-        base_dir = os.path.join(os.path.expanduser('~'), f'.{APP_NAME}')
-    
+    args = parse_args()
+    if args.app_dir:
+        base_dir = args.app_directory
+    else:
+        system = platform.system()
+
+        if system == 'Windows':
+            base_dir = os.path.join(os.getenv('APPDATA'), APP_NAME)
+        elif system == 'Darwin':  # macOS
+            base_dir = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', APP_NAME)
+        else:  # Linux and other Unix-like systems
+            base_dir = os.path.join(os.path.expanduser('~'), f'.{APP_NAME}')
+
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
-    
+
     return base_dir
 
 def get_download_directory(pk: str) -> str:

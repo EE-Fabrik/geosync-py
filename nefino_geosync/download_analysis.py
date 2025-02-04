@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import zipfile
@@ -9,6 +10,7 @@ from datetime import datetime
 from shutil import move, rmtree
 from urllib.request import urlretrieve
 
+log = logging.getLogger(__name__)
 
 def download_analysis(analysis: AnalysisResult) -> None:
     """Downloads the analysis to the local machine."""
@@ -50,7 +52,7 @@ def unpack_items(zip_root: str, pk: str, started_at: datetime) -> None:
     config = Config.singleton()
 
     if pk not in journal.analysis_states:
-        print(f"Analysis {pk} not found in journal; skipping download")
+        log.info(f"Analysis {pk} not found in journal; skipping download")
         return
 
     state = journal.get_state_for_analysis(pk)
