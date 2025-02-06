@@ -12,7 +12,7 @@ def get_app_directory() -> str:
     Creates it if it doesn't exist."""
     args = parse_args()
     if args.app_dir:
-        base_dir = args.app_directory
+        base_dir = args.app_dir
     else:
         system = platform.system()
 

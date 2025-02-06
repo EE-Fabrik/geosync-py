@@ -33,7 +33,7 @@ def main():
         log.info("✅ All analyses have been downloaded.")
         sys.exit(0)
     else:
-        log.warning("⚠️ Some analyses haven not yet finished. Please run the script again later.")
+        log.warning("⚠️ Some analyses have not yet finished. Please run the script again later.")
         sys.exit(1)
 
 if __name__ == "__main__":
