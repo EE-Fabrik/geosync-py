@@ -52,7 +52,7 @@ def start_analyses(client: HTTPEndpoint) -> Optional[AnalysesMutationResult]:
     for federal_state_key in analysis_inputs:
         non_downloaded_analyses = get_non_downloaded_analyses(journal, federal_state_key)
         if non_downloaded_analyses:
-            log.info(f"The following existing analyses for federal state {federal_state_key} have not been downloaded yet, skipping analysis.")
+            log.info(f"The following existing analyses for federal state {federal_state_key} have not been downloaded yet, skipping analysis: {non_downloaded_analyses}")
         else:
             log.info(f"Starting analysis for {federal_state_key} for the following clusters/layers:")
             for request in analysis_inputs[federal_state_key].specs.requests:
