@@ -17,7 +17,7 @@ def get_unfinished_analyses() -> Dict[str, str]:
     journal = Journal.singleton()
     requested_federal_states = parse_args().federal_states
     unfinished = {pk:state for pk, state in journal.analysis_states.items()
-            if pk not in journal.synced_analyses and (state in requested_federal_states or requested_federal_states is None)}
+            if pk not in journal.synced_analyses and (requested_federal_states is None or state in requested_federal_states)}
     return unfinished
 
 
