@@ -29,7 +29,6 @@ def is_relevant_federal_state(analysis, journal, requested_federal_states):
     else:
         return True
 
-
 def get_downloadable_analyses(client: HTTPEndpoint) -> Generator[AnalysisResult, None, None]:
     """Yields analyses that are available for download.
     Polls for more analyses and yields them until no more are available.

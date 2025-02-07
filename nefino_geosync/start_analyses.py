@@ -1,6 +1,9 @@
 import logging
 from typing import Any, Optional, List
-from .api_client import general_availability_operation, local_availability_operation, start_analyses_operation
+
+from schema import Status
+from .api_client import general_availability_operation, local_availability_operation, start_analyses_operation, \
+    get_analyses_operation
 from .compose_requests import compose_complete_requests
 from .journal import Journal
 from .graphql_errors import check_errors
@@ -12,8 +15,16 @@ AnalysesMutationResult = Any
 
 log = logging.getLogger(__name__)
 
-def get_non_downloaded_analyses(journal, federal_state_key) -> List[str]:
-    return [pk for pk, federal_state in journal.analysis_states.items() if federal_state == federal_state_key and pk not in journal.synced_analyses]
+def get_non_downloaded_analyses(client: HTTPEndpoint, journal, federal_state_key) -> List[str]:
+    # Find analyses that have been previously started but not downloaded yet
+    requested_but_not_downloaded = [pk for pk, federal_state in journal.analysis_states.items() if federal_state == federal_state_key and pk not in journal.synced_analyses]
+    op = get_analyses_operation()
+    data = client(op)
+    check_errors(data)
+    analyses = op + data
+    # Filter for analyses that have not failed (those _should_ be started again)
+    non_downloaded_analyses = [analysis.pk for analysis in analyses.analysis_metadata if analysis.pk in requested_but_not_downloaded and analysis.status != Status("ERROR")]
+    return non_downloaded_analyses
 
 
 def start_analyses(client: HTTPEndpoint) -> Optional[AnalysesMutationResult]:
@@ -48,9 +59,8 @@ def start_analyses(client: HTTPEndpoint) -> Optional[AnalysesMutationResult]:
 
     # Info: In manchen Bundesländern sind in den heruntergeladenen ZipFiles für DE1 sind keine Layer enthalten, so dass immer wieder neue Analysen angestoßen werden.
     # Das soll demnächst gefixt werden, so dass zumindest leere Geopackages ausgeliefert werden.
-    # TODO (minor) There might already be a PENDING/RUNNING analysis that has not been downloaded yet. Skip analysis if that is the case.
     for federal_state_key in analysis_inputs:
-        non_downloaded_analyses = get_non_downloaded_analyses(journal, federal_state_key)
+        non_downloaded_analyses = get_non_downloaded_analyses(client, journal, federal_state_key)
         if non_downloaded_analyses:
             log.info(f"The following existing analyses for federal state {federal_state_key} have not been downloaded yet, skipping analysis: {non_downloaded_analyses}")
         else:
