@@ -31,10 +31,9 @@ def main():
     analyses_complete = download_completed_analyses(client)
     if analyses_complete:
         log.info("✅ All analyses have been downloaded.")
-        sys.exit(0)
     else:
         log.warning("⚠️ Some analyses have not yet finished. Please run the script again later.")
-        sys.exit(1)
+
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
