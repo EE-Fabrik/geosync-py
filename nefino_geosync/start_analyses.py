@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Optional, List
 
-from schema import Status
+from .schema import Status
 from .api_client import general_availability_operation, local_availability_operation, start_analyses_operation, \
     get_analyses_operation
 from .compose_requests import compose_complete_requests
