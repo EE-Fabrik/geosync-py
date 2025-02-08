@@ -10,17 +10,6 @@ from .parse_args import parse_args
 log = logging.getLogger(__name__)
 
 
-def get_unfinished_analyses() -> Dict[str, str]:
-    """Yields analyses that are available for download.
-    Polls for more analyses and yields them until no more are available.
-    """
-    journal = Journal.singleton()
-    requested_federal_states = parse_args().federal_states
-    unfinished = {pk:state for pk, state in journal.analysis_states.items()
-            if pk not in journal.synced_analyses and (requested_federal_states is None or state in requested_federal_states)}
-    return unfinished
-
-
 def download_completed_analyses(client: HTTPEndpoint) -> bool:
     """Downloads the analyses that have been completed."""
     journal = Journal.singleton()
@@ -36,7 +25,7 @@ def download_completed_analyses(client: HTTPEndpoint) -> bool:
                 log.info(f"Analysis {analysis.pk} missing metadata; skipping download")
         elif args.verbose:
             log.info(f"Analysis {analysis.pk} already downloaded")
-    unfinished_analyses = get_unfinished_analyses()
+    unfinished_analyses = journal.get_non_downloaded_analyses(client, args.federal_states)
     for pk, state in unfinished_analyses.items():
         log.info(f"Analysis {pk} for state {state} not yet finished")
     return len(unfinished_analyses) == 0

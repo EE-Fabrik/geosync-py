@@ -3,7 +3,13 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import Dict, Set
+from typing import Dict, Set, Optional, List
+
+from sgqlc.endpoint.http import HTTPEndpoint
+
+from .api_client import get_analyses_operation
+from .graphql_errors import check_errors
+from .schema import Status
 from .storage import get_app_directory
 
 
@@ -124,3 +130,15 @@ class Journal:
         """Records that the analysis has been downloaded and unpacked."""
         self.synced_analyses.add(pk)
         self.save_synced_analyses()
+
+    def get_non_downloaded_analyses(self, client: HTTPEndpoint, federal_states: Optional[List[str]] = None) -> Dict[str, str]:
+        requested_but_not_downloaded = {pk:federal_state for pk, federal_state in self.analysis_states.items()
+                                        if (federal_states is None or federal_state in federal_states)
+                                        and pk not in self.synced_analyses}
+        op = get_analyses_operation()
+        data = client(op)
+        check_errors(data)
+        analyses = op + data
+        # Filter for analyses that have not failed (those _should_ be started again)
+        non_downloaded_analyses = {analysis.pk:requested_but_not_downloaded[analysis.pk] for analysis in analyses.analysis_metadata if analysis.pk in requested_but_not_downloaded and analysis.status != Status("ERROR")}
+        return non_downloaded_analyses

@@ -60,6 +60,5 @@ def get_downloadable_analyses(client: HTTPEndpoint) -> Generator[AnalysisResult,
 
         if skip_unfinished or not found_outstanding_analysis:
             break
-        if verbose:
-            log.info("Waiting for more analyses to finish...")
+        log.info("Waiting for more analyses to finish...")
         sleep(10)
