@@ -55,6 +55,8 @@ def get_downloadable_analyses(client: HTTPEndpoint) -> Generator[AnalysisResult,
                 if analysis.status == Status("SUCCESS") and analysis.pk not in reported_pks:
                     reported_pks.add(analysis.pk)
                     yield analysis
+                elif verbose:
+                    log.info(f"Skipping analysis {analysis.pk} with status {analysis.status}")
             elif verbose:
                 log.info(f"Skipping analysis {analysis.pk} because it is not in the list of requested federal states")
 
