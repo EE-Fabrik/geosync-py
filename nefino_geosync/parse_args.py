@@ -13,6 +13,7 @@ def parse_args(cached=[]):
     parser.add_argument('-s', '--skip-unfinished', action='store_true', help='Skip waiting for unfinished analyses to complete.')
     parser.add_argument('-a', '--app-dir', required=False, help='The directory where the application data is stored.')
     parser.add_argument('-fs', '--federal-states', nargs='+', required=False, help='List of federal states as NUTS:DE codes (see https://de.wikipedia.org/wiki/NUTS:DE).')
+    parser.add_argument('-n', '--non-interactive', action='store_true', help='Run the script in non-interactive mode. This will raise exceptions instead of pretty-printing them to the terminal, among other things. Should be used when running as an automated job.')
     args = parser.parse_args()
     cached.append(args)
     return args

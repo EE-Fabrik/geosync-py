@@ -14,6 +14,8 @@ def check_errors(data: dict) -> None:
     """Check for errors in a GraphQL response."""
     args = parse_args()
     if 'errors' in data:
+        if args.non_interactive:
+            raise Exception(f"GraphQL operation with errors: {data['errors']}")
         if args.verbose:
             pp("<b>GraphQL operation with errors:</b> " + html.escape(json.dumps(data, indent=4)))
 
