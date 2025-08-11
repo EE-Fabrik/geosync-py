@@ -11,7 +11,7 @@ from .config import Config
 def get_client(api_host: str="https://api.nefino.li") -> HTTPEndpoint:
     """Returns an HTTP client for the Nefino API."""
     headers = {'Authorization': Config.singleton().api_key}
-    return HTTPEndpoint(f'{api_host}/external', headers)
+    return HTTPEndpoint(f'{api_host}/external', headers, timeout=120)
 
 def general_availability_operation() -> Operation:
     """Returns the general availability of layers and access permissions from Nefino API."""

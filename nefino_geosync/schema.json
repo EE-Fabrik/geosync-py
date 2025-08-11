@@ -622,18 +622,6 @@
               "deprecationReason": null,
               "description": null,
               "isDeprecated": false,
-              "name": "lastUpdate",
-              "type": {
-                "kind": "SCALAR",
-                "name": "DateTime",
-                "ofType": null
-              }
-            },
-            {
-              "args": [],
-              "deprecationReason": null,
-              "description": null,
-              "isDeprecated": false,
               "name": "isRegional",
               "type": {
                 "kind": "NON_NULL",
@@ -643,6 +631,18 @@
                   "name": "Boolean",
                   "ofType": null
                 }
+              }
+            },
+            {
+              "args": [],
+              "deprecationReason": null,
+              "description": null,
+              "isDeprecated": false,
+              "name": "lastUpdate",
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               }
             }
           ],
@@ -694,6 +694,12 @@
               "description": null,
               "isDeprecated": false,
               "name": "LOCAL_ADMINISTRATIVE_UNITS_GEO"
+            },
+            {
+              "deprecationReason": null,
+              "description": null,
+              "isDeprecated": false,
+              "name": "COUNTY_GEO"
             }
           ],
           "fields": null,
@@ -1071,6 +1077,12 @@
               "deprecationReason": null,
               "description": null,
               "isDeprecated": false,
+              "name": "COUNTY"
+            },
+            {
+              "deprecationReason": null,
+              "description": null,
+              "isDeprecated": false,
               "name": "LOCAL_ADMINISTRATIVE_UNIT"
             },
             {
@@ -1303,12 +1315,6 @@
               "description": null,
               "isDeprecated": false,
               "name": "QGIS_PRJ"
-            },
-            {
-              "deprecationReason": null,
-              "description": null,
-              "isDeprecated": false,
-              "name": "QGIS_AND_GPKG"
             },
             {
               "deprecationReason": null,

@@ -142,3 +142,22 @@ class Journal:
         # Filter for analyses that have not failed (those _should_ be started again)
         non_downloaded_analyses = {analysis.pk:requested_but_not_downloaded[analysis.pk] for analysis in analyses.analysis_metadata if analysis.pk in requested_but_not_downloaded and analysis.status != Status("ERROR")}
         return non_downloaded_analyses
+
+    def was_started_after(self, analysis, since: Optional[datetime]) -> bool:
+        """Checks if the analysis was started after the given date."""
+        if not since:
+            return True
+        return analysis.started_at and analysis.started_at > since
+
+
+    def get_failed_analyses(self, client: HTTPEndpoint, federal_states: Optional[List[str]] = None, since: Optional[datetime] = None) -> Dict[str, str]:
+        requested_but_not_downloaded = {pk:federal_state for pk, federal_state in self.analysis_states.items()
+                                        if (federal_states is None or federal_state in federal_states)
+                                        and pk not in self.synced_analyses}
+        op = get_analyses_operation()
+        data = client(op)
+        check_errors(data)
+        analyses = op + data
+        # Filter for analyses that have not failed (those _should_ be started again)
+        failed_analyses = {analysis.pk:requested_but_not_downloaded[analysis.pk] for analysis in analyses.analysis_metadata if analysis.pk in requested_but_not_downloaded and analysis.status == Status("ERROR") and self.was_started_after(analysis, since)}
+        return failed_analyses

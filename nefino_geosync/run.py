@@ -5,7 +5,7 @@ import sys
 
 from .api_client import get_client
 from .start_analyses import start_analyses
-from .download_completed_analyses import download_completed_analyses
+from .download_completed_analyses import download_completed_analyses, get_failed_analyses
 from .config import Config
 from .parse_args import parse_args
 
@@ -28,11 +28,16 @@ def main():
 
     if not args.resume:
         start_analyses(client)
-    analyses_complete = download_completed_analyses(client)
-    if analyses_complete:
-        log.info("✅ All analyses have been downloaded.")
-    else:
-        log.warning("⚠️ Some analyses have not yet finished. Please run the script again later.")
+    # analyses_complete = download_completed_analyses(client)
+    # if analyses_complete:
+    #     log.info("✅ All analyses have been downloaded.")
+    # else:
+    #     log.warning("⚠️ Some analyses have not yet finished. Please run the script again later.")
+
+    failed_analyses = get_failed_analyses(client)
+    return failed_analyses
+
+
 
 
 if __name__ == "__main__":

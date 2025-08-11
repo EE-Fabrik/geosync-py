@@ -1,5 +1,6 @@
+import datetime
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from .journal import Journal
 from .get_downloadable_analyses import get_downloadable_analyses
@@ -29,3 +30,15 @@ def download_completed_analyses(client: HTTPEndpoint) -> bool:
     for pk, state in unfinished_analyses.items():
         log.info(f"Analysis {pk} for state {state} not yet finished")
     return len(unfinished_analyses) == 0
+
+
+def get_failed_analyses(client: HTTPEndpoint, failed_since: Optional[datetime] = None) -> Dict[str, str]:
+    """Checks for failed analyses and returns a dictionary of failed analyses."""
+    journal = Journal.singleton()
+    args = parse_args()
+    if not failed_since:
+        failed_since = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
+    failed_analyses = journal.get_failed_analyses(client, args.federal_states, failed_since)
+    if failed_analyses:
+        log.warning(f"{len(failed_analyses)} analyses failed since {failed_since.isoformat()}.")
+    return failed_analyses

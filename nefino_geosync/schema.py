@@ -26,12 +26,12 @@ Int = sgqlc.types.Int
 
 class OutputObjectType(sgqlc.types.Enum):
     __schema__ = schema
-    __choices__ = ('GPKG', 'QGIS_AND_GPKG', 'QGIS_PRJ', 'SHP')
+    __choices__ = ('GPKG', 'QGIS_PRJ', 'SHP')
 
 
 class PlaceTypeGeo(sgqlc.types.Enum):
     __schema__ = schema
-    __choices__ = ('ADMINISTRATIVE_UNIT_GEO', 'COUNTRY', 'FEDERAL_STATE_GEO', 'LOCAL_ADMINISTRATIVE_UNITS_GEO', 'PLANNING_REGIONS_GEO')
+    __choices__ = ('ADMINISTRATIVE_UNIT_GEO', 'COUNTRY', 'COUNTY_GEO', 'FEDERAL_STATE_GEO', 'LOCAL_ADMINISTRATIVE_UNITS_GEO', 'PLANNING_REGIONS_GEO')
 
 
 class PlaceTypeNews(sgqlc.types.Enum):
@@ -41,7 +41,7 @@ class PlaceTypeNews(sgqlc.types.Enum):
 
 class ScopeType(sgqlc.types.Enum):
     __schema__ = schema
-    __choices__ = ('ADMINISTRATIVE_UNIT', 'FEDERAL_STATE', 'LOCAL_ADMINISTRATIVE_UNIT', 'PLANNING_REGION', 'POLYGON', 'RADIUS', 'SQUARE')
+    __choices__ = ('ADMINISTRATIVE_UNIT', 'COUNTY', 'FEDERAL_STATE', 'LOCAL_ADMINISTRATIVE_UNIT', 'PLANNING_REGION', 'POLYGON', 'RADIUS', 'SQUARE')
 
 
 class Status(sgqlc.types.Enum):
@@ -160,11 +160,11 @@ class MinimalGeoAccessRule(sgqlc.types.Type):
 
 class MinimalLayer(sgqlc.types.Type):
     __schema__ = schema
-    __field_names__ = ('name', 'pre_buffer', 'last_update', 'is_regional')
+    __field_names__ = ('name', 'pre_buffer', 'is_regional', 'last_update')
     name = sgqlc.types.Field(sgqlc.types.non_null(String), graphql_name='name')
     pre_buffer = sgqlc.types.Field(sgqlc.types.non_null(Int), graphql_name='preBuffer')
-    last_update = sgqlc.types.Field(DateTime, graphql_name='lastUpdate')
     is_regional = sgqlc.types.Field(sgqlc.types.non_null(Boolean), graphql_name='isRegional')
+    last_update = sgqlc.types.Field(DateTime, graphql_name='lastUpdate')
 
 
 class Mutation(sgqlc.types.Type):
