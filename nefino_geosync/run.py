@@ -28,11 +28,11 @@ def main():
 
     if not args.resume:
         start_analyses(client)
-    # analyses_complete = download_completed_analyses(client)
-    # if analyses_complete:
-    #     log.info("✅ All analyses have been downloaded.")
-    # else:
-    #     log.warning("⚠️ Some analyses have not yet finished. Please run the script again later.")
+    analyses_complete = download_completed_analyses(client)
+    if analyses_complete:
+        log.info("✅ All analyses have been downloaded.")
+    else:
+        log.warning("⚠️ Some analyses have not yet finished. Please run the script again later.")
 
     failed_analyses = get_failed_analyses(client)
     return failed_analyses
