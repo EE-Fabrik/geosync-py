@@ -64,6 +64,6 @@ def start_analyses(client: HTTPEndpoint) -> Optional[AnalysesMutationResult]:
             analyses = (analyses_op + analyses_data)
 
             # Add the analyses to the journal
-            journal.record_analyses_requested(analyses)
+            journal.record_analyses_requested(analyses, analysis_inputs)
 
     return(analyses)

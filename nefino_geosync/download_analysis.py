@@ -57,6 +57,8 @@ def unpack_items(zip_root: str, pk: str, started_at: datetime) -> None:
 
     state = journal.get_state_for_analysis(pk)
     base_path = get_base_path(zip_root)
+    # Empty layers are not contained in the zip, but must be recorded as well, otherwise they are requested again
+    layers = set(journal.analysis_requested_layers.get(pk, set()))
 
     # Iterate through cluster folders inside the analysis subfolder
     for cluster in (
@@ -65,17 +67,16 @@ def unpack_items(zip_root: str, pk: str, started_at: datetime) -> None:
         if f != "analysis_area" and os.path.isdir(os.path.join(base_path, f))
     ):
         cluster_dir = os.path.join(base_path, cluster)
-        layers = set()
 
         for file in os.listdir(cluster_dir):
-            if journal.is_newer_than_saved(file, state, started_at):
+            match = re.match(FILE_NAME_PATTERN, file)
+            layer, ext = (match.group("layer"), match.group("ext"))
+            if journal.is_newer_than_saved(layer, state, started_at):
                 output_dir = os.path.join(config.output_path, state)
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
 
                 file_path = os.path.join(cluster_dir, file)
-                match = re.match(FILE_NAME_PATTERN, file)
-                layer, ext = (match.group("layer"), match.group("ext"))
 
                 # Remove any existing files for the same layer
                 # this is important to avoid confusion if the pre-buffer changes
@@ -96,8 +97,7 @@ def unpack_items(zip_root: str, pk: str, started_at: datetime) -> None:
                 move(file_path, output_dir)
                 layers.add(layer)
 
-        journal.record_layers_unpacked(layers, state, started_at)
-
+    journal.record_layers_unpacked(layers, state, started_at)
     rmtree(zip_root)
 
 

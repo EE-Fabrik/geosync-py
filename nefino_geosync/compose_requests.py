@@ -23,10 +23,12 @@ def compose_complete_requests(general_availability: GeneralAvailabilityResult,
 def compose_layer_inputs(layers: list, local_layers: Set[str], state: str) -> List[GeoAnalysisLayerInput]:
     """Build a list of layer inputs from output lists."""
     journal = Journal.singleton()
+    skip_layers = set(Config.singleton().skip_layers)
     return [GeoAnalysisLayerInput(layer_name=layer['name'], 
                                   buffer_m=[layer['pre_buffer']]) 
             for layer in layers 
-            if ((not layer.is_regional) or (layer.name in local_layers)) 
+            if layer.name not in skip_layers
+            and ((not layer.is_regional) or (layer.name in local_layers)) 
             and journal.is_newer_than_saved(layer.name, state, layer.last_update)]
 
 def compose_single_request(state: str,
@@ -39,9 +41,6 @@ def compose_single_request(state: str,
     # specify the data we want to add to the analysis
     state_local_layers = {layer.name for layer in 
                           local_availability[f'regionalLayers_{state}']}
-
-    for skip_layer in config.skip_layers:
-        state_local_layers.discard(skip_layer)
 
     requests_as_tuples = [(cluster, compose_layer_inputs(cluster.layers, state_local_layers, state)) 
                           for cluster in general_availability.clusters 

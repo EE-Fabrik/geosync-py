@@ -9,7 +9,7 @@ from sgqlc.endpoint.http import HTTPEndpoint
 
 from .api_client import get_analyses_operation
 from .graphql_errors import check_errors
-from .schema import Status
+from .schema import GeoAnalysisInput, Status
 from .storage import get_app_directory
 
 
@@ -35,6 +35,9 @@ class Journal:
         # Mapping from analysis pk to the state where the analysis was started
         self.analysis_states: Dict[str, str] = dict()
 
+        # Mapping from analysis pk to the layers requested in it, until the analysis is synced
+        self.analysis_requested_layers: Dict[str, Set[str]] = dict()
+
         # Mapping from layer name to where it was last updated and when
         self.layer_last_updates: Dict[str, Dict[str, datetime]] = dict()
 
@@ -42,6 +45,7 @@ class Journal:
         self.synced_analyses: Set[str] = set()
 
         self.load_analysis_states()
+        self.load_analysis_requested_layers()
         self.load_layer_last_updates()
         self.load_synced_analyses()
 
@@ -59,6 +63,20 @@ class Journal:
             # we already have an empty dictionary as the field value
             log.info("No saved analysis states found.")
     
+    def save_analysis_requested_layers(self):
+        """Saves the requested layers of not yet synced analyses to a file."""
+        with open(os.path.join(get_app_directory(), "analysis_requested_layers.json"), "w") as f:
+            json.dump({pk: sorted(layers) for pk, layers in self.analysis_requested_layers.items()}, f)
+
+    def load_analysis_requested_layers(self):
+        """Loads the requested layers of not yet synced analyses from a file."""
+        try:
+            with open(os.path.join(get_app_directory(), "analysis_requested_layers.json"), "r") as f:
+                self.analysis_requested_layers = {pk: set(layers) for pk, layers in json.load(f).items()}
+        except FileNotFoundError:
+            # we already have an empty dictionary as the field value
+            log.info("No saved analysis requested layers found.")
+
     def save_layer_last_updates(self):
         """Saves the layer last updates to a file."""
         with open(os.path.join(get_app_directory(), "layer_last_updates.json"), "w") as f:
@@ -90,8 +108,8 @@ class Journal:
             # we already have an empty set as the field value
             log.info("No saved downloaded analyses found.")
 
-    def record_analyses_requested(self, start_analyses_result):
-        """Records the analyses that have been started, and where they were started."""
+    def record_analyses_requested(self, start_analyses_result, analysis_inputs: Dict[str, GeoAnalysisInput]):
+        """Records the analyses that have been started, where they were started and which layers they contain."""
         pattern = r"^startAnalysis_(?P<state>DE[1-9A-G])$"
         for alias, analysis_metadata in start_analyses_result.__dict__.items(): 
             match = re.match(pattern, alias)
@@ -100,11 +118,16 @@ class Journal:
             state = match.group("state")
             # record where the analysis was started
             self.analysis_states[analysis_metadata.pk] = state
+            self.analysis_requested_layers[analysis_metadata.pk] = {
+                layer.layer_name for request in analysis_inputs[state].specs.requests for layer in request.layers
+            }
             log.info(f"Analysis {analysis_metadata.pk} for state {state} started.")
         self.save_analysis_states()
+        self.save_analysis_requested_layers()
     
     def record_layers_unpacked(self, layers: Set[str], state: str, started_at: datetime):
         """Records the layers that have been unpacked, and when they were last updated."""
+        layers = {layer for layer in layers if self.is_newer_than_saved(layer, state, started_at)}
         log.info(f"Recording layers {layers} as unpacked for state {state}")
         for layer in layers:
             if layer not in self.layer_last_updates:
@@ -130,6 +153,8 @@ class Journal:
         """Records that the analysis has been downloaded and unpacked."""
         self.synced_analyses.add(pk)
         self.save_synced_analyses()
+        if self.analysis_requested_layers.pop(pk, None) is not None:
+            self.save_analysis_requested_layers()
 
     def get_non_downloaded_analyses(self, client: HTTPEndpoint, federal_states: Optional[List[str]] = None) -> Dict[str, str]:
         requested_but_not_downloaded = {pk:federal_state for pk, federal_state in self.analysis_states.items()
